@@ -62,9 +62,7 @@ class TestMixtralModel(unittest.TestCase):
 
         self.assertEqual(logits.shape, (2, 32, 2048))
 
-        loss = torch.nn.functional.cross_entropy(
-            logits.view(-1, 2048), tokens.view(-1)
-        )
+        loss = torch.nn.functional.cross_entropy(logits.view(-1, 2048), tokens.view(-1))
         loss.backward()
 
         grad_count = sum(1 for p in model.parameters() if p.grad is not None)
