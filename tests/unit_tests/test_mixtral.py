@@ -138,7 +138,8 @@ class TestMixtralParallelize(DTensorTestBase):
             )
 
             # Model should still be callable after FSDP wrapping
-            tokens = torch.randint(0, 2048, (2, 32))
+            device = f"cuda:{self.rank}"
+            tokens = torch.randint(0, 2048, (2, 32), device=device)
             logits = model(tokens)
             self.assertEqual(logits.shape[-1], 2048)
 
