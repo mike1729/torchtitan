@@ -59,6 +59,42 @@ mixtral_configs = {
             backend="cos_sin",
         ),
     ),
+    "profilemodel": MixtralModel.Config(
+        dim=2048,
+        n_layers=12,
+        vocab_size=32000,
+        tok_embeddings=Embedding.Config(),
+        output=Linear.Config(),
+        norm=RMSNorm.Config(eps=1e-5),
+        layer=MixtralTransformerBlock.Config(
+            attention_norm=RMSNorm.Config(eps=1e-5),
+            ffn_norm=RMSNorm.Config(eps=1e-5),
+            attention=GQAttention.Config(
+                n_heads=16,
+                n_kv_heads=4,
+                head_dim=128,
+                attn_backend="sdpa",
+                rope_backend="cos_sin",
+            ),
+            moe=MoE.Config(
+                hidden_dim=5632,
+                num_experts=8,
+                num_shared_experts=0,
+                score_before_experts=False,
+                router=TokenChoiceTopKRouter.Config(
+                    top_k=2,
+                    score_func="softmax",
+                    route_norm=True,
+                ),
+            ),
+        ),
+        rope=RoPE.Config(
+            dim=128,
+            max_seq_len=4096,
+            theta=1_000_000.0,
+            backend="cos_sin",
+        ),
+    ),
     "8x7b": MixtralModel.Config(
         dim=4096,
         n_layers=32,

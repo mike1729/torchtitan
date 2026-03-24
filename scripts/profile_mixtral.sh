@@ -1,5 +1,6 @@
 #!/bin/bash
 # Profile Mixtral parallelization configs on RunPod (4× GPU)
+# Uses profilemodel (~3.6B params) for meaningful compute/communication ratios.
 # Produces Chrome trace files in /tmp/mixtral_profiles/
 #
 # Usage: bash scripts/profile_mixtral.sh
@@ -10,12 +11,13 @@ REPO_DIR="${REPO_DIR:-$(pwd)}"
 NGPU=$(python -c "import torch; print(torch.cuda.device_count())")
 PROFILE_DIR="/tmp/mixtral_profiles"
 STEPS=10
+CONFIG="mixtral_profilemodel"
 
 # profile_freq=10, warmup=3, active=1 → captures step 10 after 3 warmup steps
 # (wait=10-3-1=6 steps skipped, then 3 warmup, then 1 active capture)
 
 echo "============================================"
-echo "Mixtral Profiling — $NGPU GPUs"
+echo "Mixtral Profiling — $NGPU GPUs, profilemodel (~3.6B params)"
 echo "Traces will be saved to $PROFILE_DIR"
 echo "============================================"
 
@@ -30,10 +32,8 @@ run_profiled() {
     mkdir -p "$trace_dir"
     torchrun --nproc-per-node="$NGPU" \
         -m torchtitan.train \
-        --module mixtral --config mixtral_debugmodel \
+        --module mixtral --config "$CONFIG" \
         --training.steps "$STEPS" \
-        --training.seq_len 256 \
-        --training.local_batch_size 4 \
         --metrics.log_freq 5 \
         --profiling.enable_profiling \
         --profiling.save_traces_folder "$trace_dir" \
